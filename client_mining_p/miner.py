@@ -4,6 +4,7 @@ import requests
 import sys
 import json
 
+# This program needs to do the mining, which will sends the request to the server
 
 def proof_of_work(block):
     """
