@@ -75,8 +75,10 @@ if __name__ == '__main__':
             break
 
         # TODO: Get the block from `data` and use it to look for a new proof
+    
         start = time.time()
         new_proof = proof_of_work(data)
+        # breakpoint() # --> checkout ../Notes.py
         end = time.time()
         print(f"It took {end - start} to find a new proof")
         # print("New Proof", new_proof)
