@@ -123,21 +123,46 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
-#Routes with GET methods
-@app.route('/mine', methods=['GET'])
+#Routes with POST methods
+@app.route('/mine', methods=['POST'])
 def mine():
-    # Run the proof of work algorithm to get the next proof
+
+    #Run the proof of work algorithm to get the next proof
     # proof = blockchain.proof_of_work(blockchain.last_block)
     # # Forge the new Block by adding it to the chain with the proof
     # previous_hash = blockchain.hash(blockchain.last_block)
     # block = blockchain.new_block(proof, previous_hash)
 
-    #     # TODO: Send a JSON response with the new block
-    response = {
-        'new_block': block
-    }
+    # ^Do we need above?
+    # vWill below work, do we combine?
 
-    return jsonify(response), 200
+    data = request.get_json() #How wo we use this???
+    ids = data['id']
+    block_proof = data['proof']
+    last_block_string = json.dumps(block)
+
+    if block_proof in data and ids in data :
+        last_block = blockchain.last_block
+
+        if blockchain.valid_proof(last_block_string ,proof):
+            previous_hash = blockchain.hash(last_block)
+            block = blockchain.new_block(proof, previous_hash)
+            # need a message, index, transactions, proof, previous_hash
+            response = {
+                'message': "New Block Forged",
+                'index': block['index'] ,
+                'transactions': block['transactions'] ,
+                'proof': block['proof'],
+                'previous_hash': block['previous_hash']
+            }
+
+            return jsonify(response), 200
+            
+        else:
+            response = {
+                'message': "Invalid Proof"
+            }
+            return jsonify(response), 400
 
 
 
@@ -151,7 +176,7 @@ def full_chain():
     return jsonify(response), 200
 
 #Add an endpoint called `last_block`
-@app.route('/last', methods=['GET'])
+@app.route('/last_block', methods=['GET'])
 def last_block():
 
     response = {
