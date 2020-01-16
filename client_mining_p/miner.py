@@ -5,7 +5,7 @@ import sys
 import json
 import time
 
-from blockchain.py import Blockchain
+# from blockchain.py import Blockchain
 
 # from blockchain.py import last_block
 
@@ -22,13 +22,12 @@ def proof_of_work(block):
     """
     block_string = json.dumps(block)
     proof = 0
-    print("Proof of work Started")
-    while self.valid_proof(block_string, proof) is False:
+    print("Proof of work started")
+    while valid_proof(block_string, proof) is False:
         proof += 1
-    print("Proof of work Finished")
+    print("Proof of work finished")
     return proof
 
-@staticmethod
 def valid_proof(block_string, proof):
     """
     Validates the Proof:  Does hash(block_string, proof) contain 6
@@ -41,10 +40,10 @@ def valid_proof(block_string, proof):
     :return: True if the resulting hash is a valid proof, False otherwise
     """
     guess = f"{block_string}{proof}".encode()
-        guess_hash = hashlib.sha256(guess).hexdigest()
+    guess_hash = hashlib.sha256(guess).hexdigest()
 
         # return True or False
-        return guess_hash[:6] == "000000"
+    return guess_hash[:6] == "000000"
 
 
 if __name__ == '__main__':
@@ -52,7 +51,9 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         node = sys.argv[1]
     else:
-        node = "http://localhost:5000"
+        node = "http://localhost:5000/"
+
+    coins = 0
 
     # Load ID
     f = open("my_id.txt", "r")
@@ -62,10 +63,14 @@ if __name__ == '__main__':
 
     # Run forever until interrupted
     while True:
-        r = requests.get(url=node + "/last_block")
+        # print("Before r request")
+        r = requests.get(url=node + "last_block")
         # Handle non-json response
+        # print("After r request")
         try:
             data = r.json()
+            # print("Data", data)
+            # print("after data request")
         except ValueError:
             print("Error:  Non-json response")
             print("Response returned:")
@@ -73,15 +78,21 @@ if __name__ == '__main__':
             break
 
         # TODO: Get the block from `data` and use it to look for a new proof
-        new_proof = proof_of_work(data['last_block'])
+        new_proof = proof_of_work(data)
+        # print("New Proof", new_proof)
 
         # When found, POST it to the server {"proof": new_proof, "id": id}
         post_data = {"proof": new_proof, "id": id}
+        # print("post_data", post_data)
 
-        r = requests.post(url=node + "/mine", json=post_data)
-        data = r.json()
+        r = requests.post(url=node + "mine", json=post_data)
+        data = r.json() 
+        # print("mined", data)
 
         # TODO: If the server responds with a 'message' 'New Block Forged'
-        # add 1 to the number of coins mined and print it.  Otherwise,
-        # print the message from the server.
-        pass
+        if data['message'] == "New Block Forged":
+            # add 1 to the number of coins mined and print it.
+            coins +=1
+            print(f'You have mined {coins} coin(s)!')
+        # Otherwise,print the message from the server.
+        print(f"{data['message']}\n")
